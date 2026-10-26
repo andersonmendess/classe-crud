@@ -9,6 +9,7 @@ export default function RootLayout() {
       <Stack>
         <Stack.Screen name="index" options={{ title: 'Cadastros' }} />
         <Stack.Screen name="nova" options={{ title: 'Nova pessoa' }} />
+        <Stack.Screen name="nova-empresa" options={{ title: 'Nova empresa' }} />
         <Stack.Screen name="[id]" options={{ title: 'Editar pessoa' }} />
       </Stack>
     </SQLiteProvider>

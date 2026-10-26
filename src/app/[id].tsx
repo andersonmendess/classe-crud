@@ -5,6 +5,7 @@ import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { FormularioPessoa } from '@/components/FormularioPessoa';
+import { cores } from '@/constants/cores';
 import {
   atualizarPessoa,
   buscarPessoa,
@@ -72,21 +73,21 @@ export default function TelaEditarPessoa() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: cores.fundo,
   },
   mensagem: {
     padding: 16,
-    color: '#000000',
+    color: cores.texto,
   },
   botaoExcluir: {
-    backgroundColor: '#D00000',
+    backgroundColor: cores.erro,
     marginHorizontal: 16,
-    padding: 14,
-    borderRadius: 8,
+    paddingVertical: 15,
+    borderRadius: 12,
     alignItems: 'center',
   },
   textoBotao: {
-    color: '#FFFFFF',
+    color: cores.superficie,
     fontSize: 16,
     fontWeight: '600',
   },

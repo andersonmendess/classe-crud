@@ -4,6 +4,8 @@ import { useCallback, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { CadastroFlutuante } from '@/components/CadastroFlutuante';
+import { cores } from '@/constants/cores';
 import { listarPessoas, type Pessoa } from '@/database/pessoas';
 
 export default function TelaListaPessoas() {
@@ -28,72 +30,84 @@ export default function TelaListaPessoas() {
           contentContainerStyle={[styles.listaConteudo, { paddingBottom: 96 + insets.bottom }]}
           renderItem={({ item }) => (
             <Pressable
-              style={styles.item}
+              style={({ pressed }) => [styles.item, pressed && styles.itemPressionado]}
               onPress={() => router.push({ pathname: '/[id]', params: { id: String(item.id) } })}>
-              <Text style={styles.nome}>{item.nome}</Text>
-              {item.email ? <Text style={styles.detalhe}>{item.email}</Text> : null}
+              <View style={styles.avatar}>
+                <Text style={styles.avatarTexto}>{iniciais(item.nome)}</Text>
+              </View>
+              <View style={styles.textos}>
+                <Text style={styles.nome}>{item.nome}</Text>
+                {item.email ? <Text style={styles.detalhe}>{item.email}</Text> : null}
+              </View>
             </Pressable>
           )}
         />
       )}
 
-      <Pressable
-        style={[styles.botaoNovo, { bottom: 24 + insets.bottom }]}
-        onPress={() => router.push('/nova')}
-        accessibilityLabel="Nova pessoa">
-        <Text style={styles.textoBotao}>+</Text>
-      </Pressable>
+      <CadastroFlutuante />
     </View>
   );
+}
+
+function iniciais(nome: string): string {
+  return nome
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((parte) => parte[0].toUpperCase())
+    .join('');
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: cores.fundo,
   },
   listaConteudo: {
-    paddingHorizontal: 16,
-    paddingBottom: 96,
-  },
-  botaoNovo: {
-    position: 'absolute',
-    right: 24,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#208AEF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 4,
-    shadowColor: '#000000',
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-  },
-  textoBotao: {
-    color: '#FFFFFF',
-    fontSize: 28,
-    lineHeight: 30,
-    fontWeight: '400',
+    padding: 16,
+    gap: 10,
   },
   vazio: {
     textAlign: 'center',
-    marginTop: 32,
-    color: '#60646C',
+    marginTop: 48,
+    fontSize: 15,
+    color: cores.textoSecundario,
   },
   item: {
-    paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#C7C7CC',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    backgroundColor: cores.superficie,
+    padding: 14,
+    borderRadius: 14,
+  },
+  itemPressionado: {
+    opacity: 0.7,
+  },
+  avatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: cores.primariaClara,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarTexto: {
+    color: cores.primaria,
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  textos: {
+    flex: 1,
+    gap: 2,
   },
   nome: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#000000',
+    color: cores.texto,
   },
   detalhe: {
     fontSize: 14,
-    color: '#60646C',
+    color: cores.textoSecundario,
   },
 });

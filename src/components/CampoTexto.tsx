@@ -1,5 +1,7 @@
 import { StyleSheet, Text, TextInput, View, type KeyboardTypeOptions } from 'react-native';
 
+import { cores } from '@/constants/cores';
+
 type Props = {
   label: string;
   value: string;
@@ -21,7 +23,7 @@ export function CampoTexto({
     <View style={styles.campo}>
       <Text style={styles.label}>{label}</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, erro && styles.inputComErro]}
         value={value}
         onChangeText={onChangeText}
         keyboardType={keyboardType}
@@ -34,22 +36,28 @@ export function CampoTexto({
 
 const styles = StyleSheet.create({
   campo: {
-    gap: 4,
+    gap: 6,
   },
   label: {
     fontSize: 14,
-    color: '#000000',
+    fontWeight: '500',
+    color: cores.texto,
   },
   input: {
+    backgroundColor: cores.superficie,
     borderWidth: 1,
-    borderColor: '#C7C7CC',
-    borderRadius: 8,
-    padding: 10,
+    borderColor: cores.borda,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
     fontSize: 16,
-    color: '#000000',
+    color: cores.texto,
+  },
+  inputComErro: {
+    borderColor: cores.erro,
   },
   erro: {
-    color: '#D00000',
+    color: cores.erro,
     fontSize: 13,
   },
 });
