@@ -1,30 +1,22 @@
 import { useState } from 'react';
-import { KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, Text } from 'react-native';
+import { KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { CampoTexto } from '@/components/CampoTexto';
 import { CamposEndereco } from '@/components/CamposEndereco';
+import { EtapaDadosPessoais } from '@/components/pessoa/EtapaDadosPessoais';
+import { EtapaRevisao } from '@/components/pessoa/EtapaRevisao';
+import type { DadosFormularioPessoa } from '@/components/pessoa/tipos';
 import { cores } from '@/constants/cores';
 import type { DadosPessoa } from '@/database/pessoas';
-import { dataBrParaIso, formatarDataBr, isoParaDataBr } from '@/utils/data';
+import { dataBrParaIso, isoParaDataBr } from '@/utils/data';
 import { formatarCep, formatarCpf } from '@/utils/documentos';
-import { validarPessoa, type ErrosPessoa } from '@/utils/validacao';
+import {
+  validarDadosPessoais,
+  validarEndereco,
+  type ErrosPessoa,
+} from '@/utils/validacao';
 
-type DadosFormulario = {
-  nome: string;
-  email: string;
-  telefone: string;
-  dataNascimento: string;
-  cpf: string;
-  rg: string;
-  cep: string;
-  logradouro: string;
-  numero: string;
-  complemento: string;
-  bairro: string;
-  cidade: string;
-  uf: string;
-};
+const ETAPAS = ['Dados pessoais', 'Endereço', 'Revisar'];
 
 type Props = {
   pessoa?: DadosPessoa;
@@ -33,41 +25,40 @@ type Props = {
 
 export function FormularioPessoa({ pessoa, onSalvar }: Props) {
   const insets = useSafeAreaInsets();
-  const [dados, setDados] = useState<DadosFormulario>(() => paraDadosFormulario(pessoa));
+  const [etapa, setEtapa] = useState(1);
+  const [dados, setDados] = useState<DadosFormularioPessoa>(() => paraDadosFormulario(pessoa));
   const [erros, setErros] = useState<ErrosPessoa>({});
 
-  function atualizar(campo: keyof DadosFormulario, texto: string) {
+  function atualizar(campo: keyof DadosFormularioPessoa, texto: string) {
     setDados((anterior) => ({ ...anterior, [campo]: texto }));
   }
 
-  function handleSalvar() {
-    const dataIso = dataBrParaIso(dados.dataNascimento);
+  function irParaEtapa(numero: number) {
+    setErros({});
+    setEtapa(numero);
+  }
 
-    const pessoaNova: DadosPessoa = {
-      nome: dados.nome.trim(),
-      email: dados.email.trim(),
-      telefone: dados.telefone.trim(),
-      dataNascimento: dataIso ?? '',
-      cpf: dados.cpf.replace(/\D/g, ''),
-      rg: dados.rg.trim() || null,
-      cep: dados.cep.replace(/\D/g, ''),
-      logradouro: dados.logradouro.trim(),
-      numero: dados.numero.trim(),
-      complemento: dados.complemento.trim(),
-      bairro: dados.bairro.trim(),
-      cidade: dados.cidade.trim(),
-      uf: dados.uf.trim().toUpperCase(),
-    };
-
-    const novosErros = validarPessoa(pessoaNova);
-    if (dados.dataNascimento && !dataIso) {
-      novosErros.dataNascimento = 'Data inválida. Use DD/MM/AAAA.';
-    }
+  function avancar() {
+    const novosErros = validarEtapa(etapa, dados);
     setErros(novosErros);
 
     if (Object.keys(novosErros).length === 0) {
-      onSalvar(pessoaNova);
+      irParaEtapa(etapa + 1);
     }
+  }
+
+  function salvar() {
+    for (const numero of [1, 2]) {
+      const novosErros = validarEtapa(numero, dados);
+
+      if (Object.keys(novosErros).length > 0) {
+        setErros(novosErros);
+        setEtapa(numero);
+        return;
+      }
+    }
+
+    onSalvar(montarPessoa(dados));
   }
 
   return (
@@ -76,62 +67,65 @@ export function FormularioPessoa({ pessoa, onSalvar }: Props) {
         style={styles.scroll}
         contentContainerStyle={[styles.conteudo, { paddingBottom: 16 + insets.bottom }]}
         keyboardShouldPersistTaps="handled">
-        <Text style={styles.titulo}>Dados pessoais</Text>
+        <Text style={styles.progresso}>
+          Passo {etapa} de {ETAPAS.length}
+        </Text>
+        <Text style={styles.tituloEtapa}>{ETAPAS[etapa - 1]}</Text>
 
-        <CampoTexto
-          label="Nome"
-          value={dados.nome}
-          onChangeText={(texto) => atualizar('nome', texto)}
-          erro={erros.nome}
-          autoCapitalize="words"
-        />
-        <CampoTexto
-          label="E-mail"
-          value={dados.email}
-          onChangeText={(texto) => atualizar('email', texto)}
-          erro={erros.email}
-          keyboardType="email-address"
-        />
-        <CampoTexto
-          label="Telefone"
-          value={dados.telefone}
-          onChangeText={(texto) => atualizar('telefone', texto)}
-          erro={erros.telefone}
-          keyboardType="phone-pad"
-        />
-        <CampoTexto
-          label="Data de nascimento (DD/MM/AAAA)"
-          value={dados.dataNascimento}
-          onChangeText={(texto) => atualizar('dataNascimento', formatarDataBr(texto))}
-          erro={erros.dataNascimento}
-          keyboardType="number-pad"
-        />
-        <CampoTexto
-          label="CPF"
-          value={dados.cpf}
-          onChangeText={(texto) => atualizar('cpf', formatarCpf(texto))}
-          erro={erros.cpf}
-          keyboardType="number-pad"
-        />
-        <CampoTexto
-          label="RG (opcional)"
-          value={dados.rg}
-          onChangeText={(texto) => atualizar('rg', texto)}
-        />
+        {etapa === 1 && <EtapaDadosPessoais dados={dados} erros={erros} onAlterar={atualizar} />}
+        {etapa === 2 && <CamposEndereco dados={dados} erros={erros} onAlterar={atualizar} />}
+        {etapa === 3 && <EtapaRevisao dados={dados} onEditar={irParaEtapa} />}
 
-        <Text style={styles.titulo}>Endereço</Text>
-
-        <CamposEndereco dados={dados} erros={erros} onAlterar={atualizar} />
-
-        <Pressable style={styles.botaoSalvar} onPress={handleSalvar}>
-          <Text style={styles.textoBotao}>Salvar</Text>
-        </Pressable>
+        <View style={styles.navegacao}>
+          {etapa > 1 && (
+            <Pressable style={styles.botaoVoltar} onPress={() => irParaEtapa(etapa - 1)}>
+              <Text style={styles.textoBotaoVoltar}>Voltar</Text>
+            </Pressable>
+          )}
+          <Pressable
+            style={styles.botaoPrincipal}
+            onPress={etapa < ETAPAS.length ? avancar : salvar}>
+            <Text style={styles.textoBotao}>{etapa < ETAPAS.length ? 'Próximo' : 'Salvar'}</Text>
+          </Pressable>
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
-function paraDadosFormulario(pessoa?: DadosPessoa): DadosFormulario {
+function validarEtapa(numero: number, dados: DadosFormularioPessoa): ErrosPessoa {
+  const pessoa = montarPessoa(dados);
+
+  if (numero === 1) {
+    const erros = validarDadosPessoais(pessoa);
+    if (dados.dataNascimento && !pessoa.dataNascimento) {
+      erros.dataNascimento = 'Data inválida. Use DD/MM/AAAA.';
+    }
+    return erros;
+  }
+
+  return validarEndereco(pessoa);
+}
+
+function montarPessoa(dados: DadosFormularioPessoa): DadosPessoa {
+  return {
+    nome: dados.nome.trim(),
+    email: dados.email.trim(),
+    telefone: dados.telefone.trim(),
+    dataNascimento: dataBrParaIso(dados.dataNascimento) ?? '',
+    cpf: dados.cpf.replace(/\D/g, ''),
+    rg: dados.rg.trim() || null,
+    cep: dados.cep.replace(/\D/g, ''),
+    logradouro: dados.logradouro.trim(),
+    numero: dados.numero.trim(),
+    complemento: dados.complemento.trim(),
+    bairro: dados.bairro.trim(),
+    cidade: dados.cidade.trim(),
+    uf: dados.uf.trim().toUpperCase(),
+  };
+}
+
+function paraDadosFormulario(pessoa?: DadosPessoa): DadosFormularioPessoa {
   return {
     nome: pessoa?.nome ?? '',
     email: pessoa?.email ?? '',
@@ -161,20 +155,42 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 14,
   },
-  titulo: {
+  progresso: {
     fontSize: 13,
     fontWeight: '600',
     color: cores.textoSecundario,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+  },
+  tituloEtapa: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: cores.texto,
+    marginBottom: 4,
+  },
+  navegacao: {
+    flexDirection: 'row',
+    gap: 12,
     marginTop: 12,
   },
-  botaoSalvar: {
+  botaoVoltar: {
+    flex: 1,
+    backgroundColor: cores.superficie,
+    borderWidth: 1,
+    borderColor: cores.borda,
+    paddingVertical: 15,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  textoBotaoVoltar: {
+    color: cores.texto,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  botaoPrincipal: {
+    flex: 1,
     backgroundColor: cores.primaria,
     paddingVertical: 15,
     borderRadius: 12,
     alignItems: 'center',
-    marginTop: 12,
   },
   textoBotao: {
     color: cores.superficie,
