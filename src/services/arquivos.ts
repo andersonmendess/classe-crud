@@ -1,12 +1,11 @@
 import { Directory, File, Paths } from 'expo-file-system';
 
-const pastaDocumentos = new Directory(Paths.document, 'documentos');
-
 export async function copiarParaDocumentos(uriOrigem: string, nomeOriginal: string) {
-  pastaDocumentos.create({ idempotent: true, intermediates: true });
+  const pasta = new Directory(Paths.document, 'documentos');
+  pasta.create({ idempotent: true, intermediates: true });
 
   const nome = `${Date.now()}-${nomeOriginal.replace(/[^\w.-]/g, '_')}`;
-  const destino = new File(pastaDocumentos, nome);
+  const destino = new File(pasta, nome);
 
   await new File(uriOrigem).copy(destino);
 
