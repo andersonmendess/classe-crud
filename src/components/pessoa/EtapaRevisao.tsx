@@ -1,12 +1,16 @@
 import { CartaoResumo, LinhaResumo } from '@/components/CartaoResumo';
+import { CartaoDocumentos } from '@/components/documentos/CartaoDocumentos';
 import type { DadosFormularioPessoa } from '@/components/pessoa/tipos';
+import type { Documento } from '@/database/documentos';
+import { tiposDocumentoPessoa } from '@/utils/tiposDocumento';
 
 type Props = {
   dados: DadosFormularioPessoa;
+  documentos: Documento[];
   onEditar: (etapa: number) => void;
 };
 
-export function EtapaRevisao({ dados, onEditar }: Props) {
+export function EtapaRevisao({ dados, documentos, onEditar }: Props) {
   return (
     <>
       <CartaoResumo titulo="Dados pessoais" onEditar={() => onEditar(1)}>
@@ -27,6 +31,12 @@ export function EtapaRevisao({ dados, onEditar }: Props) {
         <LinhaResumo rotulo="Cidade" valor={dados.cidade} />
         <LinhaResumo rotulo="UF" valor={dados.uf} />
       </CartaoResumo>
+
+      <CartaoDocumentos
+        documentos={documentos}
+        tipos={tiposDocumentoPessoa}
+        onEditar={() => onEditar(3)}
+      />
     </>
   );
 }

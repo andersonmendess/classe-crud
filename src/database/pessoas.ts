@@ -1,5 +1,7 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
+import { apagarDocumentosDoTitular } from '@/database/documentos';
+
 export type Pessoa = {
   id: number;
   nome: string;
@@ -19,26 +21,6 @@ export type Pessoa = {
 
 export type DadosPessoa = Omit<Pessoa, 'id'>;
 
-const colunas = [
-  'nome',
-  'email',
-  'telefone',
-  'dataNascimento',
-  'cpf',
-  'rg',
-  'cep',
-  'logradouro',
-  'numero',
-  'complemento',
-  'bairro',
-  'cidade',
-  'uf',
-] as const;
-
-function paraParametros(dados: DadosPessoa) {
-  return Object.fromEntries(colunas.map((coluna) => [`$${coluna}`, dados[coluna]]));
-}
-
 export async function listarPessoas(db: SQLiteDatabase): Promise<Pessoa[]> {
   return db.getAllAsync<Pessoa>('SELECT * FROM pessoas ORDER BY nome');
 }
@@ -47,24 +29,64 @@ export async function buscarPessoa(db: SQLiteDatabase, id: number): Promise<Pess
   return db.getFirstAsync<Pessoa>('SELECT * FROM pessoas WHERE id = ?', id);
 }
 
-export async function criarPessoa(db: SQLiteDatabase, dados: DadosPessoa) {
-  const valores = colunas.map((coluna) => `$${coluna}`).join(', ');
-
-  await db.runAsync(
-    `INSERT INTO pessoas (${colunas.join(', ')}) VALUES (${valores})`,
-    paraParametros(dados)
+export async function cpfJaCadastrado(db: SQLiteDatabase, cpf: string, ignorarId = 0) {
+  const pessoa = await db.getFirstAsync<{ id: number }>(
+    'SELECT id FROM pessoas WHERE cpf = ? AND id != ?',
+    cpf,
+    ignorarId
   );
+
+  return pessoa !== null;
+}
+
+export async function criarPessoa(db: SQLiteDatabase, dados: DadosPessoa): Promise<number> {
+  const resultado = await db.runAsync(
+    `INSERT INTO pessoas (
+      nome, email, telefone, dataNascimento, cpf, rg,
+      cep, logradouro, numero, complemento, bairro, cidade, uf
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    dados.nome,
+    dados.email,
+    dados.telefone,
+    dados.dataNascimento,
+    dados.cpf,
+    dados.rg,
+    dados.cep,
+    dados.logradouro,
+    dados.numero,
+    dados.complemento,
+    dados.bairro,
+    dados.cidade,
+    dados.uf
+  );
+
+  return resultado.lastInsertRowId;
 }
 
 export async function atualizarPessoa(db: SQLiteDatabase, id: number, dados: DadosPessoa) {
-  const atribuicoes = colunas.map((coluna) => `${coluna} = $${coluna}`).join(', ');
-
-  await db.runAsync(`UPDATE pessoas SET ${atribuicoes} WHERE id = $id`, {
-    ...paraParametros(dados),
-    $id: id,
-  });
+  await db.runAsync(
+    `UPDATE pessoas SET
+      nome = ?, email = ?, telefone = ?, dataNascimento = ?, cpf = ?, rg = ?,
+      cep = ?, logradouro = ?, numero = ?, complemento = ?, bairro = ?, cidade = ?, uf = ?
+    WHERE id = ?`,
+    dados.nome,
+    dados.email,
+    dados.telefone,
+    dados.dataNascimento,
+    dados.cpf,
+    dados.rg,
+    dados.cep,
+    dados.logradouro,
+    dados.numero,
+    dados.complemento,
+    dados.bairro,
+    dados.cidade,
+    dados.uf,
+    id
+  );
 }
 
 export async function excluirPessoa(db: SQLiteDatabase, id: number) {
+  await apagarDocumentosDoTitular(db, { tipo: 'pessoa', id });
   await db.runAsync('DELETE FROM pessoas WHERE id = ?', id);
 }

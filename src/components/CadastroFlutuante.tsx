@@ -31,22 +31,37 @@ export function CadastroFlutuante() {
   });
 
   return (
-    <View style={[styles.container, { bottom: 24 + insets.bottom }]}>
-      <Animated.View
-        style={[styles.opcoes, { opacity: animacao, transform: [{ translateY: deslocamento }] }]}
-        pointerEvents={aberto ? 'auto' : 'none'}>
-        <Pressable style={styles.opcao} onPress={() => abrirCadastro('/nova')}>
-          <Text style={styles.textoOpcao}>Pessoa</Text>
-        </Pressable>
-        <Pressable style={styles.opcao} onPress={() => abrirCadastro('/nova-empresa')}>
-          <Text style={styles.textoOpcao}>Empresa</Text>
-        </Pressable>
-      </Animated.View>
+    <>
+      {aberto ? (
+        <Pressable
+          style={StyleSheet.absoluteFill}
+          onPress={alternar}
+        />
+      ) : null}
 
-      <Pressable style={styles.botao} onPress={alternar} accessibilityLabel="Novo cadastro">
-        <Text style={styles.textoBotao}>{aberto ? '×' : '+'}</Text>
-      </Pressable>
-    </View>
+      <View style={[styles.container, { bottom: 24 + insets.bottom }]}>
+        <Animated.View
+          style={[styles.opcoes, { opacity: animacao, transform: [{ translateY: deslocamento }] }]}
+          pointerEvents={aberto ? 'auto' : 'none'}>
+          <Pressable
+            style={styles.opcao}
+            onPress={() => abrirCadastro('/nova')}>
+            <Text style={styles.textoOpcao}>Pessoa</Text>
+          </Pressable>
+          <Pressable
+            style={styles.opcao}
+            onPress={() => abrirCadastro('/nova-empresa')}>
+            <Text style={styles.textoOpcao}>Empresa</Text>
+          </Pressable>
+        </Animated.View>
+
+        <Pressable
+          style={styles.botao}
+          onPress={alternar}>
+          <Text style={styles.textoBotao}>{aberto ? '×' : '+'}</Text>
+        </Pressable>
+      </View>
+    </>
   );
 }
 

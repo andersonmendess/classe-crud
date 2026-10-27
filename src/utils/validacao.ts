@@ -3,16 +3,19 @@ import { validateCNPJ, validateCPF } from 'validador-cnpj-cpf';
 import type { DadosEmpresa } from '@/database/empresas';
 import type { DadosPessoa } from '@/database/pessoas';
 
-type Endereco = Pick<
-  DadosPessoa,
-  'cep' | 'logradouro' | 'numero' | 'complemento' | 'bairro' | 'cidade' | 'uf'
->;
+export type Erros = Record<string, string | undefined>;
 
-export type ErrosPessoa = Partial<Record<keyof DadosPessoa, string>>;
-export type ErrosEmpresa = Partial<Record<keyof DadosEmpresa, string>>;
-export type ErrosEndereco = Partial<Record<keyof Endereco, string>>;
+type Endereco = {
+  cep: string;
+  logradouro: string;
+  numero: string;
+  complemento: string;
+  bairro: string;
+  cidade: string;
+  uf: string;
+};
 
-const camposDadosPessoais: [keyof DadosPessoa, string][] = [
+const camposDadosPessoais = [
   ['nome', 'Informe o nome.'],
   ['email', 'Informe o e-mail.'],
   ['telefone', 'Informe o telefone.'],
@@ -20,18 +23,17 @@ const camposDadosPessoais: [keyof DadosPessoa, string][] = [
   ['cpf', 'Informe o CPF.'],
 ];
 
-const camposDadosEmpresa: [keyof DadosEmpresa, string][] = [
+const camposDadosEmpresa = [
   ['razaoSocial', 'Informe a razão social.'],
   ['cnpj', 'Informe o CNPJ.'],
   ['email', 'Informe o e-mail.'],
   ['telefone', 'Informe o telefone.'],
 ];
 
-const camposEndereco: [keyof Endereco, string][] = [
+const camposEndereco = [
   ['cep', 'Informe o CEP.'],
   ['logradouro', 'Informe o logradouro.'],
   ['numero', 'Informe o número.'],
-  ['complemento', 'Informe o complemento.'],
   ['bairro', 'Informe o bairro.'],
   ['cidade', 'Informe a cidade.'],
   ['uf', 'Informe a UF.'],
@@ -39,11 +41,8 @@ const camposEndereco: [keyof Endereco, string][] = [
 
 const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-function obrigatorios<T extends object>(
-  dados: T,
-  campos: [keyof T, string][]
-): Partial<Record<keyof T, string>> {
-  const erros: Partial<Record<keyof T, string>> = {};
+function verificarObrigatorios(dados: Record<string, unknown>, campos: string[][]): Erros {
+  const erros: Erros = {};
 
   for (const [campo, mensagem] of campos) {
     if (!dados[campo]) {
@@ -54,11 +53,33 @@ function obrigatorios<T extends object>(
   return erros;
 }
 
-export function validarDadosPessoais(dados: DadosPessoa): ErrosPessoa {
-  const erros: ErrosPessoa = obrigatorios(dados, camposDadosPessoais);
+function telefoneValido(telefone: string) {
+  return telefone.length === 10 || telefone.length === 11;
+}
+
+function dataDeAnosAtras(anos: number) {
+  const data = new Date();
+  data.setFullYear(data.getFullYear() - anos);
+  return data.toISOString().slice(0, 10);
+}
+
+export function validarDadosPessoais(dados: DadosPessoa): Erros {
+  const erros = verificarObrigatorios(dados, camposDadosPessoais);
 
   if (!erros.email && !regexEmail.test(dados.email)) {
     erros.email = 'E-mail inválido.';
+  }
+
+  if (!erros.telefone && !telefoneValido(dados.telefone)) {
+    erros.telefone = 'Telefone inválido.';
+  }
+
+  if (!erros.dataNascimento && dados.dataNascimento > dataDeAnosAtras(0)) {
+    erros.dataNascimento = 'A data de nascimento não pode ser no futuro.';
+  }
+
+  if (!erros.dataNascimento && dados.dataNascimento < dataDeAnosAtras(100)) {
+    erros.dataNascimento = 'A data de nascimento deve ser dos últimos 100 anos.';
   }
 
   if (!erros.cpf && !validateCPF(dados.cpf).isValid) {
@@ -68,11 +89,15 @@ export function validarDadosPessoais(dados: DadosPessoa): ErrosPessoa {
   return erros;
 }
 
-export function validarDadosEmpresa(dados: DadosEmpresa): ErrosEmpresa {
-  const erros: ErrosEmpresa = obrigatorios(dados, camposDadosEmpresa);
+export function validarDadosEmpresa(dados: DadosEmpresa): Erros {
+  const erros = verificarObrigatorios(dados, camposDadosEmpresa);
 
   if (!erros.email && !regexEmail.test(dados.email)) {
     erros.email = 'E-mail inválido.';
+  }
+
+  if (!erros.telefone && !telefoneValido(dados.telefone)) {
+    erros.telefone = 'Telefone inválido.';
   }
 
   if (!erros.cnpj && !validateCNPJ(dados.cnpj).isValid) {
@@ -82,8 +107,8 @@ export function validarDadosEmpresa(dados: DadosEmpresa): ErrosEmpresa {
   return erros;
 }
 
-export function validarEndereco(dados: Endereco): ErrosEndereco {
-  const erros: ErrosEndereco = obrigatorios(dados, camposEndereco);
+export function validarEndereco(dados: Endereco): Erros {
+  const erros = verificarObrigatorios(dados, camposEndereco);
 
   if (!erros.cep && dados.cep.length !== 8) {
     erros.cep = 'O CEP precisa ter 8 números.';

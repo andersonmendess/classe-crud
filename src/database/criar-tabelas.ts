@@ -2,6 +2,8 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 
 export async function criarTabelas(db: SQLiteDatabase) {
   await db.execAsync(`
+    PRAGMA foreign_keys = ON;
+
     CREATE TABLE IF NOT EXISTS pessoas (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       nome TEXT NOT NULL,
@@ -34,5 +36,19 @@ export async function criarTabelas(db: SQLiteDatabase) {
       cidade TEXT NOT NULL,
       uf TEXT NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS documentos (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      pessoaId INTEGER REFERENCES pessoas(id) ON DELETE CASCADE,
+      empresaId INTEGER REFERENCES empresas(id) ON DELETE CASCADE,
+      tipo TEXT NOT NULL,
+      nomeArquivo TEXT NOT NULL,
+      caminho TEXT NOT NULL,
+      mimeType TEXT,
+      tamanho INTEGER NOT NULL
+    );
+
+    CREATE UNIQUE INDEX IF NOT EXISTS pessoas_cpf_unico ON pessoas (cpf);
+    CREATE UNIQUE INDEX IF NOT EXISTS empresas_cnpj_unico ON empresas (cnpj);
   `);
 }
