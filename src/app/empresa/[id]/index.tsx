@@ -10,7 +10,7 @@ import { cores } from '@/constants/cores';
 import { listarDocumentos, type Documento } from '@/database/documentos';
 import { buscarEmpresa, excluirEmpresa, type Empresa } from '@/database/empresas';
 import { mostrarAviso } from '@/services/avisos';
-import { formatarCep, formatarCnpj, formatarTelefone } from '@/utils/documentos';
+import { formatarCep, formatarCnpj, formatarCpf, formatarTelefone } from '@/utils/documentos';
 import { tiposDocumentoEmpresa } from '@/utils/tiposDocumento';
 
 export default function TelaEmpresa() {
@@ -90,6 +90,12 @@ export default function TelaEmpresa() {
           <LinhaResumo rotulo="CNPJ" valor={formatarCnpj(empresa.cnpj)} />
           <LinhaResumo rotulo="E-mail" valor={empresa.email} />
           <LinhaResumo rotulo="Telefone" valor={formatarTelefone(empresa.telefone)} />
+        </CartaoResumo>
+
+        <CartaoResumo titulo="Representante legal" onEditar={() => editar(1)}>
+          <LinhaResumo rotulo="Nome" valor={empresa.representanteNome} />
+          <LinhaResumo rotulo="CPF" valor={formatarCpf(empresa.representanteCpf)} />
+          <LinhaResumo rotulo="Cargo" valor={empresa.representanteCargo ?? ''} />
         </CartaoResumo>
 
         <CartaoResumo titulo="Endereço" onEditar={() => editar(2)}>

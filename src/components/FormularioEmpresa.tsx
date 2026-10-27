@@ -15,7 +15,7 @@ import { useConfirmarSaida } from '@/hooks/useConfirmarSaida';
 import { useDocumentosFormulario } from '@/hooks/useDocumentosFormulario';
 import { useFocoEncadeado } from '@/hooks/useFocoEncadeado';
 import { mostrarAviso } from '@/services/avisos';
-import { formatarCep, formatarCnpj, formatarTelefone } from '@/utils/documentos';
+import { formatarCep, formatarCnpj, formatarCpf, formatarTelefone } from '@/utils/documentos';
 import { ErroCadastro } from '@/utils/erros';
 import { tiposDocumentoEmpresa } from '@/utils/tiposDocumento';
 import { validarDadosEmpresa, validarEndereco, type Erros } from '@/utils/validacao';
@@ -28,6 +28,9 @@ const ORDEM_CAMPOS = [
   'cnpj',
   'email',
   'telefone',
+  'representanteNome',
+  'representanteCpf',
+  'representanteCargo',
   'cep',
   'logradouro',
   'numero',
@@ -184,6 +187,9 @@ function montarEmpresa(dados: DadosFormularioEmpresa): DadosEmpresa {
     cnpj: dados.cnpj.replace(/[^A-Z0-9]/g, ''),
     email: dados.email.trim(),
     telefone: dados.telefone.replace(/\D/g, ''),
+    representanteNome: dados.representanteNome.trim(),
+    representanteCpf: dados.representanteCpf.replace(/\D/g, ''),
+    representanteCargo: dados.representanteCargo.trim() || null,
     cep: dados.cep.replace(/\D/g, ''),
     logradouro: dados.logradouro.trim(),
     numero: dados.numero.trim(),
@@ -201,6 +207,9 @@ function paraDadosFormulario(empresa?: DadosEmpresa): DadosFormularioEmpresa {
     cnpj: formatarCnpj(empresa?.cnpj ?? ''),
     email: empresa?.email ?? '',
     telefone: formatarTelefone(empresa?.telefone ?? ''),
+    representanteNome: empresa?.representanteNome ?? '',
+    representanteCpf: formatarCpf(empresa?.representanteCpf ?? ''),
+    representanteCargo: empresa?.representanteCargo ?? '',
     cep: formatarCep(empresa?.cep ?? ''),
     logradouro: empresa?.logradouro ?? '',
     numero: empresa?.numero ?? '',

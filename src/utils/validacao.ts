@@ -28,6 +28,8 @@ const camposDadosEmpresa = [
   ['cnpj', 'Informe o CNPJ.'],
   ['email', 'Informe o e-mail.'],
   ['telefone', 'Informe o telefone.'],
+  ['representanteNome', 'Informe o nome do representante legal.'],
+  ['representanteCpf', 'Informe o CPF do representante legal.'],
 ];
 
 const camposEndereco = [
@@ -102,6 +104,10 @@ export function validarDadosEmpresa(dados: DadosEmpresa): Erros {
 
   if (!erros.cnpj && !validateCNPJ(dados.cnpj).isValid) {
     erros.cnpj = 'CNPJ inválido.';
+  }
+
+  if (!erros.representanteCpf && !validateCPF(dados.representanteCpf).isValid) {
+    erros.representanteCpf = 'CPF inválido.';
   }
 
   return erros;

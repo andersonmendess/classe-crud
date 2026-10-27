@@ -8,6 +8,9 @@ export type DadosEmpresa = {
   cnpj: string;
   email: string;
   telefone: string;
+  representanteNome: string;
+  representanteCpf: string;
+  representanteCargo: string | null;
   cep: string;
   logradouro: string;
   numero: string;
@@ -41,13 +44,17 @@ export async function criarEmpresa(db: SQLiteDatabase, dados: DadosEmpresa): Pro
   const resultado = await db.runAsync(
     `INSERT INTO empresas (
       razaoSocial, nomeFantasia, cnpj, email, telefone,
+      representanteNome, representanteCpf, representanteCargo,
       cep, logradouro, numero, complemento, bairro, cidade, uf
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     dados.razaoSocial,
     dados.nomeFantasia,
     dados.cnpj,
     dados.email,
     dados.telefone,
+    dados.representanteNome,
+    dados.representanteCpf,
+    dados.representanteCargo,
     dados.cep,
     dados.logradouro,
     dados.numero,
@@ -64,6 +71,7 @@ export async function atualizarEmpresa(db: SQLiteDatabase, id: number, dados: Da
   await db.runAsync(
     `UPDATE empresas SET
       razaoSocial = ?, nomeFantasia = ?, cnpj = ?, email = ?, telefone = ?,
+      representanteNome = ?, representanteCpf = ?, representanteCargo = ?,
       cep = ?, logradouro = ?, numero = ?, complemento = ?, bairro = ?, cidade = ?, uf = ?
     WHERE id = ?`,
     dados.razaoSocial,
@@ -71,6 +79,9 @@ export async function atualizarEmpresa(db: SQLiteDatabase, id: number, dados: Da
     dados.cnpj,
     dados.email,
     dados.telefone,
+    dados.representanteNome,
+    dados.representanteCpf,
+    dados.representanteCargo,
     dados.cep,
     dados.logradouro,
     dados.numero,

@@ -4,6 +4,9 @@ export type DadosFormularioEmpresa = {
   cnpj: string;
   email: string;
   telefone: string;
+  representanteNome: string;
+  representanteCpf: string;
+  representanteCargo: string;
   cep: string;
   logradouro: string;
   numero: string;

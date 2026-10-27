@@ -21,6 +21,12 @@ export function EtapaRevisaoEmpresa({ dados, documentos, onEditar }: Props) {
         <LinhaResumo rotulo="Telefone" valor={dados.telefone} />
       </CartaoResumo>
 
+      <CartaoResumo titulo="Representante legal" onEditar={() => onEditar(1)}>
+        <LinhaResumo rotulo="Nome" valor={dados.representanteNome} />
+        <LinhaResumo rotulo="CPF" valor={dados.representanteCpf} />
+        <LinhaResumo rotulo="Cargo" valor={dados.representanteCargo} />
+      </CartaoResumo>
+
       <CartaoResumo titulo="Endereço" onEditar={() => onEditar(2)}>
         <LinhaResumo rotulo="CEP" valor={dados.cep} />
         <LinhaResumo rotulo="Logradouro" valor={dados.logradouro} />
